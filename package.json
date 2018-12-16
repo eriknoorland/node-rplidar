@@ -26,7 +26,6 @@
   },
   "homepage": "https://github.com/eriknoorland/node-rplidar#readme",
   "dependencies": {
-    "serialport": "^7.1.0",
-    "hex-to-binary": "^1.0.1"
+    "serialport": "^7.1.0"
   }
 }

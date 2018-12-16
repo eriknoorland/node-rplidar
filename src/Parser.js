@@ -45,7 +45,6 @@ class Parser extends Transform {
             console.log('Parse scan error', error);
           }
 
-          this.push(this.buffer);
           this.buffer = Buffer.alloc(this.scanByteLength);
           this.position = 0;
         }
@@ -64,7 +63,7 @@ class Parser extends Transform {
       }
 
       if (bufferHasResponseDescriptor(Response.SCAN_START, this.buffer)) {
-        this.emit('scan-start');
+        this.emit('scan_start');
         this.buffer = this.buffer.slice(Constant.RESPONSE_DESCRIPTOR_LENGTH);
         this.isScanning = true;
       }

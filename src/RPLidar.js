@@ -12,9 +12,6 @@ const State = require('./State');
  */
 const RPLidar = (path) => {
   const eventEmitter = new EventEmitter();
-  const baudRate = 115200;
-  const bufferSize = 256;
-  const responseByteLength = 7;
 
   let state = State.IDLE;
   let motorState = MotorState.OFF;
@@ -33,10 +30,10 @@ const RPLidar = (path) => {
   function init() {
     return new Promise((resolve, reject) => {
       if (port) {
-        setTimeout(reject());
+        setTimeout(reject, 0);
       }
 
-      port = new SerialPort(path, { baudRate });
+      port = new SerialPort(path, { baudRate: 115200 });
       parser = port.pipe(new Parser());
 
       parser.on('scan_data', (data) => {
@@ -98,7 +95,7 @@ const RPLidar = (path) => {
       port.write(Request.SCAN);
 
       return new Promise(resolve => {
-        parser.once('scan-start', () => {
+        parser.once('scan_start', () => {
           state = State.SCANNING;
           resolve();
         });
