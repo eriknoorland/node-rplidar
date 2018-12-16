@@ -1,0 +1,32 @@
+{
+  "name": "node-rplidar",
+  "version": "0.0.1",
+  "description": "A Node module to communicate with the RPLidar over USB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eriknoorland/node-rplidar.git"
+  },
+  "keywords": [
+    "node-rplidar",
+    "rplidar",
+    "node",
+    "javascript",
+    "lidar",
+    "serial",
+    "usb"
+  ],
+  "author": "Erik Noorland <mail@eriknoorland.nl> (eriknoorland.nl)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eriknoorland/node-rplidar/issues"
+  },
+  "homepage": "https://github.com/eriknoorland/node-rplidar#readme",
+  "dependencies": {
+    "serialport": "^7.1.0",
+    "hex-to-binary": "^1.0.1"
+  }
+}
