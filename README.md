@@ -1,11 +1,6 @@
 # node-rplidar
 A Node module to communicate with the RPLidar over USB.
 
-## installation
-```
-npm install node-rplidar
-```
-
 ## usage
 Always make sure to call lidar.health before starting a new scan.
 ```javascript
