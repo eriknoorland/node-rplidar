@@ -3,7 +3,7 @@ A Node module to communicate with the RPLidar over USB.
 
 ## installation
 ```
-npm install node-rplidar
+npm install git+https://git@github.com/eriknoorland/node-rplidar.git
 ```
 
 ## usage
