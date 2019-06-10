@@ -22,7 +22,7 @@ lidar
   .then((health) => {
     console.log('health', health);
 
-  // 0 = good, 1 = warning, 2 = error
+    // 0 = good, 1 = warning, 2 = error
     if (health.status === 0) {
       lidar.scan();
     }
