@@ -175,6 +175,7 @@ const RPLidar = (path) => {
     stop,
     reset,
     on: eventEmitter.on.bind(eventEmitter),
+    off: eventEmitter.off.bind(eventEmitter),
   };
 };
 

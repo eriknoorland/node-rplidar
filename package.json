@@ -1,6 +1,6 @@
 {
   "name": "node-rplidar",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Node module to communicate with the RPLidar over USB",
   "main": "index.js",
   "scripts": {
