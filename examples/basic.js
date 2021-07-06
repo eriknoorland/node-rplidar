@@ -7,11 +7,20 @@ lidar.on('data', (data) => {
 
 lidar
   .init()
+  // .then(lidar.info)
+  // .then((info) => {
+  //   console.log({ info });
+  //   return Promise.resolve();
+  // })
   .then(lidar.health)
   .then((health) => {
-    console.log('health', health);
+    console.log({ health });
 
-    if (health.status === 0) {
-      lidar.scan();
+    if (health.status !== 0) {
+      return Promise.reject('health check failed');
     }
-  });
+
+    return Promise.resolve();
+  })
+  .then(lidar.scan)
+  .catch(console.log);
