@@ -43,6 +43,7 @@ class Parser extends Transform {
           this.buffer = this.buffer.slice(5);
         } catch (error) {
           console.log('Parse scan error', error);
+          this.buffer = this.buffer.slice(1);
         }
       }
     } else {
