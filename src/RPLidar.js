@@ -147,7 +147,7 @@ const RPLidar = (path) => {
    * @return {Promise}
    */
   function startMotor() {
-    port.set({ dtr: false });
+    port.set({ dtr: false }, () => {});
     motorState = MotorState.ON;
 
     return new Promise(resolve => {
@@ -159,7 +159,7 @@ const RPLidar = (path) => {
    * Stop motor
    */
   function stopMotor() {
-    port.set({ dtr: true });
+    port.set({ dtr: true }, () => {});
     motorState = MotorState.OFF;
   }
 

@@ -36,10 +36,14 @@ class Parser extends Transform {
 
       for (let i = 0; i < numScanDataPackets; i++) {
         const scanPacketData = this.buffer.slice(0, 5);
-        const parsedScanData = dataParser(scanPacketData);
+        try {
+          const parsedScanData = dataParser(scanPacketData);
 
-        this.emit('scan_data', parsedScanData);
-        this.buffer = this.buffer.slice(5);
+          this.emit('scan_data', parsedScanData);
+          this.buffer = this.buffer.slice(5);
+        } catch (error) {
+          console.log('Parse scan error', error);
+        }
       }
     } else {
       for (let j = 0; j < this.buffer.length; j++) {
