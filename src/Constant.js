@@ -1,7 +1,6 @@
-const Constant = {
+module.exports = {
   START_FLAG_1: 0xA5,
   START_FLAG_2: 0x5A,
   RESPONSE_DESCRIPTOR_LENGTH: 7,
+  SCAN_DATA_PACKET_SIZE: 5,
 };
-
-module.exports = Constant;

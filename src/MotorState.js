@@ -1,6 +1,4 @@
-const MotorState = {
+module.exports = {
   ON: 'on',
   OFF: 'off',
 };
-
-module.exports = MotorState;

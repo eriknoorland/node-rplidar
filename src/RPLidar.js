@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const SerialPort = require('serialport');
 const Parser = require('./Parser');
-const NewParser = require('./NewParser');
 const MotorState = require('./MotorState');
 const Request = require('./Request');
 const State = require('./State');
@@ -11,7 +10,7 @@ const State = require('./State');
  * @param {String} path
  * @return {Object}
  */
-const RPLidar = (path) => {
+const RPLidar = path => {
   const eventEmitter = new EventEmitter();
 
   let hasDoneHealthCheck = false;
@@ -19,11 +18,6 @@ const RPLidar = (path) => {
   let motorState = MotorState.OFF;
   let parser;
   let port;
-
-  /**
-   * Constructor
-   */
-  function constructor() {}
 
   /**
    * Init
@@ -41,8 +35,7 @@ const RPLidar = (path) => {
         }
       });
 
-      // parser = port.pipe(new Parser());
-      parser = port.pipe(new NewParser());
+      parser = port.pipe(new Parser());
 
       parser.on('scan_data', (data) => {
         eventEmitter.emit('data', data);
@@ -63,11 +56,21 @@ const RPLidar = (path) => {
     state = State.PROCESSING;
     port.write(Request.GET_HEALTH);
 
-    return new Promise(resolve => {
-      parser.once('health', health => {
+    return new Promise((resolve, reject) => {
+      parser.once('health', ({ status, error }) => {
         hasDoneHealthCheck = true;
         state = State.IDLE;
-        resolve(health);
+
+        // 0 = good
+        // 1 = warning
+        // 2 = error
+        if (status !== 0) {
+          const type = status === 1 ? 'warning' : 'error';
+
+          reject(`Health check failed with ${type} code ${error}`);
+        }
+
+        resolve();
       });
     });
   }
@@ -179,8 +182,6 @@ const RPLidar = (path) => {
       resolve();
     });
   }
-
-  constructor();
 
   return {
     init,

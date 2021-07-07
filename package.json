@@ -1,7 +1,7 @@
 {
   "name": "node-rplidar",
-  "version": "0.0.2",
-  "description": "A Node module to communicate with the RPLidar over USB",
+  "version": "0.1.0",
+  "description": "A Node module to communicate with the RPLidar A1 over USB",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

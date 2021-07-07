@@ -1,18 +1,16 @@
-const parseDecToBinary = require('../utils/parseDecToBinary');
+const parseToBinary = require('../utils/parseToBinary');
 
 /**
  *
  * @param {Array} data
  * @return {Array}
  */
-const health = data => {
-  const status = parseInt(parseDecToBinary(data[0]), 2);
-  const error = parseInt(`${parseDecToBinary(data[2])}${parseDecToBinary(data[1])}`, 2)
+ module.exports = data => {
+  const status = parseInt(parseToBinary(data[0]), 2);
+  const error = parseInt(`${parseToBinary(data[2])}${parseToBinary(data[1])}`, 2)
 
   return {
     status,
     error,
   };
 };
-
-module.exports = health;

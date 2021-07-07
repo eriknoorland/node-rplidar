@@ -1,16 +1,16 @@
-const parseDecToBinary = require('../utils/parseDecToBinary');
+const parseToBinary = require('../utils/parseToBinary');
 
 /**
  *
  * @param {Array} data
  * @return {Array}
  */
-const data = data => {
-  const byte0 = parseDecToBinary(data[0]);
-  const byte1 = parseDecToBinary(data[1]);
-  const byte2 = parseDecToBinary(data[2]);
-  const byte3 = parseDecToBinary(data[3]);
-  const byte4 = parseDecToBinary(data[4]);
+ module.exports = data => {
+  const byte0 = parseToBinary(data[0]);
+  const byte1 = parseToBinary(data[1]);
+  const byte2 = parseToBinary(data[2]);
+  const byte3 = parseToBinary(data[3]);
+  const byte4 = parseToBinary(data[4]);
 
   const startFlagBit = byte0.substring(7, 8);
   const inverseStartFlagBit = byte0.substring(6, 7);
@@ -29,5 +29,3 @@ const data = data => {
 
   return { quality, angle, distance };
 };
-
-module.exports = data;
