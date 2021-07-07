@@ -1,17 +1,10 @@
 const RPLidar = require('../src/RPLidar');
-const lidar = RPLidar('/dev/ttyUSB0');
+const lidar = RPLidar('/dev/tty.usbserial-0001');
 
-lidar.on('data', (data) => {
-  console.log(data);
-});
+lidar.on('data', console.log);
 
 lidar
   .init()
   .then(lidar.health)
-  .then((health) => {
-    console.log('health', health);
-
-    if (health.status === 0) {
-      lidar.scan();
-    }
-  });
+  .then(lidar.scan)
+  .catch(console.log);

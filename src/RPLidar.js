@@ -10,18 +10,14 @@ const State = require('./State');
  * @param {String} path
  * @return {Object}
  */
-const RPLidar = (path) => {
+const RPLidar = path => {
   const eventEmitter = new EventEmitter();
 
+  let hasDoneHealthCheck = false;
   let state = State.IDLE;
   let motorState = MotorState.OFF;
   let parser;
   let port;
-
-  /**
-   * Constructor
-   */
-  function constructor() {}
 
   /**
    * Init
@@ -33,7 +29,12 @@ const RPLidar = (path) => {
         setTimeout(reject, 0);
       }
 
-      port = new SerialPort(path, { baudRate: 115200 });
+      port = new SerialPort(path, { baudRate: 115200 }, error => {
+        if (error) {
+          reject();
+        }
+      });
+
       parser = port.pipe(new Parser());
 
       parser.on('scan_data', (data) => {
@@ -43,7 +44,7 @@ const RPLidar = (path) => {
       port.on('error', error => eventEmitter.emit('error', error));
       port.on('disconnect', () => eventEmitter.emit('disconnect'));
       port.on('close', () => eventEmitter.emit('close'));
-      port.on('open', onPortOpen.bind(null, resolve));
+      port.on('open', onPortOpen.bind(null, resolve, reject));
     });
   }
 
@@ -56,9 +57,20 @@ const RPLidar = (path) => {
     port.write(Request.GET_HEALTH);
 
     return new Promise((resolve, reject) => {
-      parser.once('health', (health) => {
-        resolve(health);
+      parser.once('health', ({ status, error }) => {
+        hasDoneHealthCheck = true;
         state = State.IDLE;
+
+        // 0 = good
+        // 1 = warning
+        // 2 = error
+        if (status !== 0) {
+          const type = status === 1 ? 'warning' : 'error';
+
+          reject(`Health check failed with ${type} code ${error}`);
+        }
+
+        resolve();
       });
     });
   }
@@ -71,8 +83,8 @@ const RPLidar = (path) => {
     state = State.PROCESSING;
     port.write(Request.GET_INFO);
 
-    return new Promise((resolve, reject) => {
-      parser.once('info', (info) => {
+    return new Promise(resolve => {
+      parser.once('info', info => {
         resolve(info);
         state = State.IDLE;
       });
@@ -84,6 +96,10 @@ const RPLidar = (path) => {
    * @return {Promise}
    */
   function scan() {
+    if (!hasDoneHealthCheck) {
+      return Promise.reject('A Health check must be performed first!');
+    }
+
     let promise = new Promise(resolve => setTimeout(resolve));
 
     if(motorState === MotorState.OFF) {
@@ -110,7 +126,7 @@ const RPLidar = (path) => {
   function stop() {
     port.write(Request.STOP);
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       state = State.IDLE;
       setTimeout(resolve, 10);
       stopMotor();
@@ -124,20 +140,20 @@ const RPLidar = (path) => {
   function reset() {
     port.write(Request.RESET);
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(resolve, 10);
     });
   }
-  
+
   /**
    * Start motor
    * @return {Promise}
    */
   function startMotor() {
-    port.set({ dtr: false });
+    port.set({ dtr: false }, () => {});
     motorState = MotorState.ON;
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(resolve, 10);
     });
   }
@@ -146,7 +162,7 @@ const RPLidar = (path) => {
    * Stop motor
    */
   function stopMotor() {
-    port.set({ dtr: true });
+    port.set({ dtr: true }, () => {});
     motorState = MotorState.OFF;
   }
 
@@ -154,18 +170,18 @@ const RPLidar = (path) => {
    * Port open event handler
    * @param {Function} resolve
    */
-  function onPortOpen(resolve) {
+  function onPortOpen(resolve, reject) {
     port.flush(error => {
       if (error) {
         eventEmitter.emit('error', error);
+        reject();
+        return;
       }
 
       state = State.IDLE;
       resolve();
     });
   }
-
-  constructor();
 
   return {
     init,

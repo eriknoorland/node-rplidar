@@ -1,7 +1,5 @@
-const State = {
+module.exports = {
   IDLE: 'idle',
   PROCESSING: 'processing',
   SCANNING: 'scanning',
 };
-
-module.exports = State;

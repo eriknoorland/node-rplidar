@@ -2,9 +2,9 @@ const Transform = require('stream').Transform;
 const Constant = require('./Constant');
 const Response = require('./Response');
 const bufferHasResponseDescriptor = require('./utils/bufferHasResponseDescriptor');
-const parseHealthResponse = require('./utils/parseHealthResponse');
-const parseInfoResponse = require('./utils/parseInfoResponse');
-const parseScan = require('./utils/parseScan');
+const healthParser = require('./parsers/health');
+const infoParser = require('./parsers/info');
+const dataParser = require('./parsers/data');
 
 /**
  * Parser
@@ -16,10 +16,9 @@ class Parser extends Transform {
   constructor() {
     super();
 
-    this.scanByteLength = Response.SCAN_START.dataLength;
-    this.buffer = Buffer.alloc(this.scanByteLength);
+    this.startFlags = Buffer.from([Constant.START_FLAG_1, Constant.START_FLAG_2]);
+    this.buffer = Buffer.alloc(0);
     this.isScanning = false;
-    this.position = 0;
   }
 
   /**
@@ -29,43 +28,60 @@ class Parser extends Transform {
    * @param {Function} callback
    */
   _transform(chunk, encoding, callback) {
+    this.buffer = Buffer.concat([this.buffer, chunk]);
+
     if (this.isScanning) {
-      let cursor = 0;
+      const numScanDataPackets = Math.floor(this.buffer.length / Constant.SCAN_DATA_PACKET_SIZE);
 
-      while (cursor < chunk.length) {
-        this.buffer[this.position] = chunk[cursor];
+      for (let i = 0; i < numScanDataPackets; i++) {
+        const scanPacketData = this.buffer.slice(0, Constant.SCAN_DATA_PACKET_SIZE);
 
-        cursor++;
-        this.position++;
-        
-        if (this.position === this.scanByteLength) {
-          try {
-            this.emit('scan_data', parseScan(this.buffer));
-          } catch(error) {
-            console.log('Parse scan error', error);
-          }
-
-          this.buffer = Buffer.alloc(this.scanByteLength);
-          this.position = 0;
+        try {
+          this.emit('scan_data', dataParser(scanPacketData));
+          this.buffer = this.buffer.slice(Constant.SCAN_DATA_PACKET_SIZE);
+        } catch (error) {
+          console.log('Parse scan error', error);
+          this.buffer = this.buffer.slice(1);
         }
       }
     } else {
-      this.buffer = Buffer.concat([this.buffer, chunk]);
+      for (let j = 0; j < this.buffer.length; j++) {
+        const packetStart = this.buffer.indexOf(this.startFlags, 0, 'hex');
 
-      if (bufferHasResponseDescriptor(Response.HEALTH, this.buffer)) {
-        this.emit('health', parseHealthResponse(this.buffer));
-        this.buffer = this.buffer.slice(Constant.RESPONSE_DESCRIPTOR_LENGTH + Response.HEALTH.dataLength);
-      }
+        if (packetStart !== -1 && this.buffer.length > packetStart + Constant.RESPONSE_DESCRIPTOR_LENGTH) {
+          const dataLength = this.buffer[packetStart + 2];
+          // const sendMode = 0;
+          // const dataType = this.buffer[packetStart + 6];
+          // const isMultipleResponse = dataType === 1;
 
-      if (bufferHasResponseDescriptor(Response.INFO, this.buffer)) {
-        this.emit('info', parseInfoResponse(this.buffer));
-        this.buffer = this.buffer.slice(Constant.RESPONSE_DESCRIPTOR_LENGTH + Response.INFO.dataLength);
-      }
+          if (this.buffer.length >= packetStart + Constant.RESPONSE_DESCRIPTOR_LENGTH + dataLength) {
+            const packetEnd = packetStart + Constant.RESPONSE_DESCRIPTOR_LENGTH + dataLength;
+            const packet = this.buffer.slice(packetStart, packetEnd);
+            const packetData = [];
 
-      if (bufferHasResponseDescriptor(Response.SCAN_START, this.buffer)) {
-        this.emit('scan_start');
-        this.buffer = this.buffer.slice(Constant.RESPONSE_DESCRIPTOR_LENGTH);
-        this.isScanning = true;
+            this.buffer = this.buffer.slice(packetEnd);
+            j = 0;
+
+            for (let i = 0; i < dataLength; i++) {
+              packetData.push(packet[Constant.RESPONSE_DESCRIPTOR_LENGTH + i]);
+            }
+
+            switch (true) {
+              case bufferHasResponseDescriptor(Response.HEALTH, packet):
+                this.emit('health', healthParser(packetData));
+                break;
+
+              case bufferHasResponseDescriptor(Response.INFO, packet):
+                this.emit('info', infoParser(packetData));
+                break;
+
+              case bufferHasResponseDescriptor(Response.SCAN_START, packet):
+                this.emit('scan_start');
+                this.isScanning = true;
+                break;
+            }
+          }
+        }
       }
     }
 
