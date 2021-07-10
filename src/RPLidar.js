@@ -100,9 +100,11 @@ const RPLidar = path => {
       return Promise.reject(error);
     }
 
-    let promise = new Promise(resolve => setTimeout(resolve), 0);
+    port.set({ dtr: false }, error => {});
 
-    return promise.then(() => {
+    const promise = new Promise(resolve => setTimeout(resolve), 0);
+
+    promise.then(() => {
       state = State.PROCESSING;
       port.write(Request.SCAN);
 
@@ -113,6 +115,8 @@ const RPLidar = path => {
         });
       });
     });
+
+    return promise;
   }
 
   /**
