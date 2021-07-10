@@ -16,8 +16,6 @@ lidar.on('data', data => {
   console.log(data);
 });
 
-lidar
-  .init()
-  .then(lidar.health)
+lidar.init()
   .then(lidar.scan);
 ```

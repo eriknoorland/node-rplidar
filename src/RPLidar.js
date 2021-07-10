@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const SerialPort = require('serialport');
 const Parser = require('./Parser');
-const MotorState = require('./MotorState');
 const Request = require('./Request');
 const State = require('./State');
 
@@ -13,9 +12,7 @@ const State = require('./State');
 const RPLidar = path => {
   const eventEmitter = new EventEmitter();
 
-  let hasDoneHealthCheck = false;
   let state = State.IDLE;
-  let motorState = MotorState.OFF;
   let parser;
   let port;
 
@@ -31,7 +28,7 @@ const RPLidar = path => {
 
       port = new SerialPort(path, { baudRate: 115200 }, error => {
         if (error) {
-          reject();
+          reject(error);
         }
       });
 
@@ -57,8 +54,9 @@ const RPLidar = path => {
     port.write(Request.GET_HEALTH);
 
     return new Promise((resolve, reject) => {
-      parser.once('health', ({ status, error }) => {
-        hasDoneHealthCheck = true;
+      parser.once('health', healthStatus => {
+        const { status, error } = healthStatus;
+
         state = State.IDLE;
 
         // 0 = good
@@ -70,7 +68,7 @@ const RPLidar = path => {
           reject(`Health check failed with ${type} code ${error}`);
         }
 
-        resolve();
+        resolve(healthStatus);
       });
     });
   }
@@ -95,16 +93,14 @@ const RPLidar = path => {
    * Scan
    * @return {Promise}
    */
-  function scan() {
-    if (!hasDoneHealthCheck) {
-      return Promise.reject('A Health check must be performed first!');
+  async function scan() {
+    try {
+      await health();
+    } catch(error) {
+      return Promise.reject(error);
     }
 
-    let promise = new Promise(resolve => setTimeout(resolve));
-
-    if(motorState === MotorState.OFF) {
-      promise = startMotor();
-    }
+    let promise = new Promise(resolve => setTimeout(resolve), 0);
 
     return promise.then(() => {
       state = State.PROCESSING;
@@ -129,7 +125,6 @@ const RPLidar = path => {
     return new Promise(resolve => {
       state = State.IDLE;
       setTimeout(resolve, 10);
-      stopMotor();
     });
   }
 
@@ -143,27 +138,6 @@ const RPLidar = path => {
     return new Promise(resolve => {
       setTimeout(resolve, 10);
     });
-  }
-
-  /**
-   * Start motor
-   * @return {Promise}
-   */
-  function startMotor() {
-    port.set({ dtr: false }, () => {});
-    motorState = MotorState.ON;
-
-    return new Promise(resolve => {
-      setTimeout(resolve, 10);
-    });
-  }
-
-  /**
-   * Stop motor
-   */
-  function stopMotor() {
-    port.set({ dtr: true }, () => {});
-    motorState = MotorState.OFF;
   }
 
   /**
