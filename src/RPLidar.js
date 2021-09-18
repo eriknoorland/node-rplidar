@@ -144,10 +144,10 @@ const RPLidar = path => {
     });
   }
 
-  /**
-   * Port open event handler
-   * @param {Function} resolve
-   */
+  function close() {
+    port.close();
+  }
+
   function onPortOpen(resolve, reject) {
     port.flush(error => {
       if (error) {
@@ -162,6 +162,7 @@ const RPLidar = path => {
   }
 
   return {
+    close,
     init,
     health,
     info,
