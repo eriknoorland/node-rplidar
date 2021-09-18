@@ -144,8 +144,16 @@ const RPLidar = path => {
     });
   }
 
+  /**
+   * Closes the serial connection
+   * @returns {Promise}
+   */
   function close() {
-    port.close();
+    return new Promise(resolve => {
+      port.close(error => {
+        resolve();
+      });
+    });
   }
 
   function onPortOpen(resolve, reject) {
