@@ -2,10 +2,11 @@ const parseToBinary = require('../utils/parseToBinary');
 
 /**
  *
+ * @param {Number} angleOffset
  * @param {Array} data
  * @return {Array}
  */
- module.exports = data => {
+ module.exports = (angleOffset, data) => {
   const byte0 = parseToBinary(data[0]);
   const byte1 = parseToBinary(data[1]);
   const byte2 = parseToBinary(data[2]);
