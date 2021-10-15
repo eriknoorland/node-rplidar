@@ -27,5 +27,15 @@ const parseToBinary = require('../utils/parseToBinary');
     throw new Error('ParseError: checkBit not 1');
   }
 
-  return { quality, angle, distance };
+  let offsettedAngle = angle + angleOffset;
+
+  if (offsettedAngle < 0) {
+    offsettedAngle = 360 - offsettedAngle;
+  }
+
+  if (offsettedAngle > 360) {
+    offsettedAngle %= 360;
+  }
+
+  return { quality, angle: offsettedAngle, distance };
 };

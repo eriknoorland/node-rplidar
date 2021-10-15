@@ -7,9 +7,10 @@ const State = require('./State');
 /**
  * RPLidar
  * @param {String} path
+ * @param {Object} options
  * @return {Object}
  */
-const RPLidar = path => {
+const RPLidar = (path, options = {}) => {
   const eventEmitter = new EventEmitter();
 
   let state = State.IDLE;
@@ -32,7 +33,7 @@ const RPLidar = path => {
         }
       });
 
-      parser = port.pipe(new Parser());
+      parser = port.pipe(new Parser(options.angleOffset || 0));
 
       parser.on('scan_data', (data) => {
         eventEmitter.emit('data', data);

@@ -12,10 +12,12 @@ const dataParser = require('./parsers/data');
 class Parser extends Transform {
   /**
    * Constructor
+   * @param {Number} angleOffset
    */
-  constructor() {
+  constructor(angleOffset) {
     super();
 
+    this.angleOffset = angleOffset;
     this.startFlags = Buffer.from([Constant.START_FLAG_1, Constant.START_FLAG_2]);
     this.buffer = Buffer.alloc(0);
     this.isScanning = false;
@@ -37,7 +39,7 @@ class Parser extends Transform {
         const scanPacketData = this.buffer.slice(0, Constant.SCAN_DATA_PACKET_SIZE);
 
         try {
-          this.emit('scan_data', dataParser(scanPacketData));
+          this.emit('scan_data', dataParser(this.angleOffset, scanPacketData));
           this.buffer = this.buffer.slice(Constant.SCAN_DATA_PACKET_SIZE);
         } catch (error) {
           console.log('Parse scan error', error);
