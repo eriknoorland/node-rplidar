@@ -1,20 +1,19 @@
-const Transform = require('stream').Transform;
-const Constant = require('./Constant');
-const Response = require('./Response');
-const bufferHasResponseDescriptor = require('./utils/bufferHasResponseDescriptor');
-const healthParser = require('./parsers/health');
-const infoParser = require('./parsers/info');
-const dataParser = require('./parsers/data');
+import { Transform } from 'stream';
+import Constant from './Constant';
+import Response from './Response';
+import bufferHasResponseDescriptor from './utils/bufferHasResponseDescriptor';
+import healthParser from './parsers/health';
+import infoParser from './parsers/info';
+import dataParser from './parsers/data';
+import { HealthPacket, InfoPacket, ScanPacket } from './types';
 
-/**
- * Parser
- */
 class Parser extends Transform {
-  /**
-   * Constructor
-   * @param {Number} angleOffset
-   */
-  constructor(angleOffset) {
+  private angleOffset: number;
+  private startFlags: Buffer;
+  private buffer: Buffer;
+  private isScanning: boolean;
+
+  constructor(angleOffset: number) {
     super();
 
     this.angleOffset = angleOffset;
@@ -23,20 +22,14 @@ class Parser extends Transform {
     this.isScanning = false;
   }
 
-  /**
-   * Transform
-   * @param {Buffer} chunk
-   * @param {String} encoding
-   * @param {Function} callback
-   */
-  _transform(chunk, encoding, callback) {
+  _transform(chunk: Buffer, encoding: string, callback: Function) {
     this.buffer = Buffer.concat([this.buffer, chunk]);
 
     if (this.isScanning) {
       const numScanDataPackets = Math.floor(this.buffer.length / Constant.SCAN_DATA_PACKET_SIZE);
 
       for (let i = 0; i < numScanDataPackets; i++) {
-        const scanPacketData = this.buffer.slice(0, Constant.SCAN_DATA_PACKET_SIZE);
+        const scanPacketData = [...this.buffer.slice(0, Constant.SCAN_DATA_PACKET_SIZE)] as ScanPacket;
 
         try {
           this.emit('scan_data', dataParser(this.angleOffset, scanPacketData));
@@ -70,11 +63,11 @@ class Parser extends Transform {
 
             switch (true) {
               case bufferHasResponseDescriptor(Response.HEALTH, packet):
-                this.emit('health', healthParser(packetData));
+                this.emit('health', healthParser(packetData as HealthPacket));
                 break;
 
               case bufferHasResponseDescriptor(Response.INFO, packet):
-                this.emit('info', infoParser(packetData));
+                this.emit('info', infoParser(packetData as InfoPacket));
                 break;
 
               case bufferHasResponseDescriptor(Response.SCAN_START, packet):
@@ -91,4 +84,4 @@ class Parser extends Transform {
   }
 }
 
-module.exports = Parser;
+export default Parser;

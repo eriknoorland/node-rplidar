@@ -1,4 +1,4 @@
-const RPLidar = require('../src/RPLidar');
+const RPLidar = require('../dist/index.cjs');
 const lidar = RPLidar('/dev/ttyUSB0');
 
 lidar.on('data', console.log);

@@ -1,14 +1,23 @@
 {
-  "name": "node-rplidar",
+  "name": "@eriknoorland/node-rplidar",
   "version": "0.1.0",
-  "description": "A Node module to communicate with the RPLidar A1 over USB",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "A Node module to communicate with the RPLidar A1 M8 over USB",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eriknoorland/node-rplidar.git"
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
     "node-rplidar",
@@ -19,13 +28,18 @@
     "serial",
     "usb"
   ],
-  "author": "Erik Noorland <mail@eriknoorland.nl> (eriknoorland.nl)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/eriknoorland/node-rplidar/issues"
-  },
-  "homepage": "https://github.com/eriknoorland/node-rplidar#readme",
+  "license": "",
   "dependencies": {
-    "serialport": "^8.0.8"
+    "serialport": "^10"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/node": "^20.10.6",
+    "rollup": "4.9.1",
+    "rollup-plugin-dts": "^6.1.0",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
   }
 }
