@@ -1,33 +1,22 @@
-const EventEmitter = require('events');
-const SerialPort = require('serialport');
-const Parser = require('./Parser');
-const Request = require('./Request');
-const State = require('./State');
+import EventEmitter from 'events';
+import { SerialPort } from 'serialport';
+import Parser from './Parser';
+import Request from './Request';
+import { HealthResponse, InfoResponse, Options, ScanResponse } from './interfaces';
 
-/**
- * RPLidar
- * @param {String} path
- * @param {Object} options
- * @return {Object}
- */
-const RPLidar = (path, options = {}) => {
+export default (path: string, options: Options = {}) => {
   const eventEmitter = new EventEmitter();
 
-  let state = State.IDLE;
-  let parser;
-  let port;
+  let port: SerialPort;
+  let parser: Parser;
 
-  /**
-   * Init
-   * @return {Promise}
-   */
-  function init() {
+  function init(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (port) {
         setTimeout(reject, 0);
       }
 
-      port = new SerialPort(path, { baudRate: 115200 }, error => {
+      port = new SerialPort({ path, baudRate: 115200 }, error => {
         if (error) {
           reject(error);
         }
@@ -35,7 +24,7 @@ const RPLidar = (path, options = {}) => {
 
       parser = port.pipe(new Parser(options.angleOffset || 0));
 
-      parser.on('scan_data', (data) => {
+      parser.on('scan_data', (data: ScanResponse) => {
         eventEmitter.emit('data', data);
       });
 
@@ -46,23 +35,14 @@ const RPLidar = (path, options = {}) => {
     });
   }
 
-  /**
-   * Health
-   * @return {Promise}
-   */
-  function health() {
-    state = State.PROCESSING;
+  function health(): Promise<HealthResponse> {
     port.write(Request.GET_HEALTH);
 
     return new Promise((resolve, reject) => {
-      parser.once('health', healthStatus => {
+      parser.once('health', (healthStatus: HealthResponse) => {
         const { status, error } = healthStatus;
 
-        state = State.IDLE;
-
-        // 0 = good
-        // 1 = warning
-        // 2 = error
+        // 0 = good, 1 = warning, 2 = error
         if (status !== 0) {
           const type = status === 1 ? 'warning' : 'error';
 
@@ -74,27 +54,15 @@ const RPLidar = (path, options = {}) => {
     });
   }
 
-  /**
-   * Info
-   * @return {Promise}
-   */
-  function info() {
-    state = State.PROCESSING;
+  function info(): Promise<InfoResponse> {
     port.write(Request.GET_INFO);
 
     return new Promise(resolve => {
-      parser.once('info', info => {
-        resolve(info);
-        state = State.IDLE;
-      });
+      parser.once('info', resolve);
     });
   }
 
-  /**
-   * Scan
-   * @return {Promise}
-   */
-  async function scan() {
+  async function scan(): Promise<void> {
     try {
       await health();
     } catch(error) {
@@ -103,41 +71,28 @@ const RPLidar = (path, options = {}) => {
 
     port.set({ dtr: false }, error => {});
 
-    const promise = new Promise(resolve => setTimeout(resolve), 0);
+    const promise: Promise<void> = new Promise(resolve => setTimeout(resolve, 0));
 
-    promise.then(() => {
-      state = State.PROCESSING;
+    promise.then((): Promise<void> => {
       port.write(Request.SCAN);
 
       return new Promise(resolve => {
-        parser.once('scan_start', () => {
-          state = State.SCANNING;
-          resolve();
-        });
+        parser.once('scan_start', resolve);
       });
     });
 
     return promise;
   }
 
-  /**
-   * Stop
-   * @return {Promise}
-   */
-  function stop() {
+  function stop(): Promise<void> {
     port.write(Request.STOP);
 
     return new Promise(resolve => {
-      state = State.IDLE;
       setTimeout(resolve, 10);
     });
   }
 
-  /**
-   * Reset
-   * @return {Promise}
-   */
-  function reset() {
+  function reset(): Promise<void> {
     port.write(Request.RESET);
 
     return new Promise(resolve => {
@@ -145,11 +100,7 @@ const RPLidar = (path, options = {}) => {
     });
   }
 
-  /**
-   * Closes the serial connection
-   * @returns {Promise}
-   */
-  function close() {
+  function close(): Promise<void> {
     return new Promise(resolve => {
       port.close(error => {
         resolve();
@@ -157,7 +108,7 @@ const RPLidar = (path, options = {}) => {
     });
   }
 
-  function onPortOpen(resolve, reject) {
+  function onPortOpen(resolve: Function, reject: Function) {
     port.flush(error => {
       if (error) {
         eventEmitter.emit('error', error);
@@ -165,12 +116,11 @@ const RPLidar = (path, options = {}) => {
         return;
       }
 
-      state = State.IDLE;
       resolve();
     });
   }
 
-  return {
+  return Object.freeze({
     close,
     init,
     health,
@@ -180,7 +130,5 @@ const RPLidar = (path, options = {}) => {
     reset,
     on: eventEmitter.on.bind(eventEmitter),
     off: eventEmitter.off.bind(eventEmitter),
-  };
+  });
 };
-
-module.exports = RPLidar;

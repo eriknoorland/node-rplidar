@@ -1,11 +1,8 @@
-const parseToBinary = require('../utils/parseToBinary');
+import parseToBinary from '../utils/parseToBinary';
+import { InfoResponse } from '../interfaces';
+import { InfoPacket } from '../types';
 
-/**
- *
- * @param {Array} data
- * @return {Array}
- */
- module.exports = data => {
+export default (data: InfoPacket): InfoResponse => {
   const model = parseInt(parseToBinary(data[0]), 2);
   const firmware = `${parseInt(parseToBinary(data[2]), 2)}.${parseInt(parseToBinary(data[1]), 2)}`;
   const hardware = parseInt(parseToBinary(data[3]), 2);

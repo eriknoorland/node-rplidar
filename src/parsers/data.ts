@@ -1,12 +1,8 @@
-const parseToBinary = require('../utils/parseToBinary');
+import parseToBinary from '../utils/parseToBinary';
+import { ScanResponse } from '../interfaces';
+import { ScanPacket } from '../types';
 
-/**
- *
- * @param {Number} angleOffset
- * @param {Array} data
- * @return {Array}
- */
- module.exports = (angleOffset, data) => {
+export default (angleOffset: number, data: ScanPacket): ScanResponse => {
   const byte0 = parseToBinary(data[0]);
   const byte1 = parseToBinary(data[1]);
   const byte2 = parseToBinary(data[2]);

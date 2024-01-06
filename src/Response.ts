@@ -1,7 +1,7 @@
-const Constant = require('./Constant');
-const ResponseMode = require('./ResponseMode');
+import Constant from './Constant';
+import ResponseMode from './ResponseMode';
 
-module.exports = {
+export default {
   HEALTH: {
     mode: ResponseMode.SINGLE,
     bytes: [Constant.START_FLAG_1, Constant.START_FLAG_2, 0x03, 0x00, 0x00, 0x00, 0x06],
