@@ -1,6 +1,6 @@
 {
   "name": "@eriknoorland/node-rplidar",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Node module to communicate with the RPLidar A1 M8 over USB",
   "files": [
     "dist"
