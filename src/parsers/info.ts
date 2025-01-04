@@ -1,6 +1,5 @@
 import parseToBinary from '../utils/parseToBinary';
-import { InfoResponse } from '../interfaces';
-import { InfoPacket } from '../types';
+import { InfoResponse, InfoPacket } from '../interfaces';
 
 export default (data: InfoPacket): InfoResponse => {
   const model = parseInt(parseToBinary(data[0]), 2);

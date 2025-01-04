@@ -5,7 +5,7 @@ import bufferHasResponseDescriptor from './utils/bufferHasResponseDescriptor';
 import healthParser from './parsers/health';
 import infoParser from './parsers/info';
 import dataParser from './parsers/data';
-import { HealthPacket, InfoPacket, ScanPacket } from './types';
+import { HealthPacket, InfoPacket, ScanPacket } from './interfaces';
 
 class Parser extends Transform {
   private angleOffset: number;

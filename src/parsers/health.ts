@@ -1,6 +1,5 @@
 import parseToBinary from '../utils/parseToBinary';
-import { HealthResponse } from '../interfaces';
-import { HealthPacket } from '../types';
+import { HealthResponse, HealthPacket } from '../interfaces';
 
  export default (data: HealthPacket): HealthResponse => {
   const status = parseInt(parseToBinary(data[0]), 2);

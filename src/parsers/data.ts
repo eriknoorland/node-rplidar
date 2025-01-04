@@ -1,6 +1,5 @@
 import parseToBinary from '../utils/parseToBinary';
-import { ScanResponse } from '../interfaces';
-import { ScanPacket } from '../types';
+import { ScanResponse, ScanPacket } from '../interfaces';
 
 export default (angleOffset: number, data: ScanPacket): ScanResponse => {
   const byte0 = parseToBinary(data[0]);
