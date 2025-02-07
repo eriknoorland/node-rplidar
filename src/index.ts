@@ -1,11 +1,11 @@
-import EventEmitter from 'events';
 import { SerialPort } from 'serialport';
 import Parser from './Parser';
 import Request from './Request';
-import { HealthResponse, InfoResponse, Options, ScanResponse } from './interfaces';
+import TypedEventEmitter from './TypedEventEmitter';
+import { RPLidar, HealthResponse, HealthStatus, InfoResponse, LidarEventTypes, Options, ScanResponse } from './interfaces';
 
-export default (path: string, options: Options = {}) => {
-  const eventEmitter = new EventEmitter();
+export default (path: string, options: Options = {}): RPLidar => {
+  const eventEmitter = new TypedEventEmitter<LidarEventTypes>();
 
   let port: SerialPort;
   let parser: Parser;
@@ -42,9 +42,8 @@ export default (path: string, options: Options = {}) => {
       parser.once('health', (healthStatus: HealthResponse) => {
         const { status, error } = healthStatus;
 
-        // 0 = good, 1 = warning, 2 = error
-        if (status !== 0) {
-          const type = status === 1 ? 'warning' : 'error';
+        if (status !== HealthStatus.GOOD) {
+          const type = status === HealthStatus.WARNING ? 'warning' : 'error';
 
           reject(`Health check failed with ${type} code ${error}`);
         }
@@ -102,7 +101,7 @@ export default (path: string, options: Options = {}) => {
 
   function close(): Promise<void> {
     return new Promise(resolve => {
-      port.close(error => {
+      port.close(() => {
         resolve();
       });
     });
@@ -113,7 +112,6 @@ export default (path: string, options: Options = {}) => {
       if (error) {
         eventEmitter.emit('error', error);
         reject();
-        return;
       }
 
       resolve();

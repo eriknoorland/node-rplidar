@@ -8,6 +8,12 @@ export interface Options {
   angleOffset?: number;
 };
 
+export enum HealthStatus {
+  GOOD = 0,
+  WARNING = 1,
+  ERROR = 2,
+};
+
 export interface HealthResponse {
   status: number;
   error: number;
@@ -31,3 +37,25 @@ export interface Response {
   bytes: number[];
   dataLength: number;
 };
+
+export type LidarEventTypes = {
+  'data': ScanResponse[]
+  'error': Error[]
+  'disconnect': []
+  'close': []
+}
+
+type EventName = keyof LidarEventTypes
+type EventHandler = (...eventArg: LidarEventTypes[EventName]) => void
+
+export interface RPLidar {
+  close: () => Promise<void>
+  init: () => Promise<void>
+  health: () => Promise<HealthResponse>
+  info: () => Promise<InfoResponse>
+  scan: () => Promise<void>
+  stop: () => Promise<void>
+  reset: () => Promise<void>
+  on: (eventName: EventName, handler: EventHandler) => void
+  off: (eventName: EventName, handler: EventHandler) => void
+}
